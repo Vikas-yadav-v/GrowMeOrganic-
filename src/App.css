@@ -1,0 +1,114 @@
+/* overright the existing class */
+.p-paginator {
+    display: flex;
+    align-items: space-between;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.p-selection-column>.p-column-header-content {
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.select-popover-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding-left: 5px;
+}
+.select-popover-wrapper > img {
+    width: 20px;
+    height: 20px;
+}
+.select-trigger-icon {
+    cursor: pointer;
+}
+
+.select-popover {
+    position: absolute;
+    top: 18%;
+    left: 2.4%;
+    width: 17.5%;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    z-index: 1000;
+}
+
+/* Small arrow (optional, like tooltip) */
+/* .select-popover::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    left: 10px;
+    width: 10px;
+    height: 10px;
+    background: #ffffff;
+    border-left: 1px solid #e5e7eb;
+    border-top: 1px solid #e5e7eb;
+    transform: rotate(45deg);
+} */
+
+.popover-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 4px;
+}
+
+.popover-subtitle {
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 10px;
+}
+
+.popover-input-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.popover-input {
+    width: 80px;
+    height: 32px;
+    padding: 4px 6px;
+    font-size: 13px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    outline: none;
+}
+
+.popover-input:focus {
+    border-color: #2563eb;
+}
+
+.popover-btn {
+    height: 32px;
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: 500;
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.popover-btn:hover {
+    background: #1d4ed8;
+}
+
+.select-pop-title {
+    display: flex;
+    justify-content: space-between;
+}
+
+.select-pop-title>.close-icon {
+    cursor: pointer;
+}
+
+.popover-input-row>input {
+    width: 70%;
+}
