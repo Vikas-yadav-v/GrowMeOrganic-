@@ -194,6 +194,7 @@ export default function ArtworksTable() {
                     dataKey="id"
                     selection={selectedRows}
                     onSelectionChange={onSelectionChange}
+                    selectionMode="checkbox"
                     lazy
                     scrollable
                     stripedRows
@@ -233,8 +234,6 @@ export default function ArtworksTable() {
                     pageLinkSize={5}
                     template={paginatorTemplate}
                     className="custom-paginator"
-                // currentPageReportTemplate={`Showing {first} to {last} of {totalRecords} entries`}
-                // currentPageReportTemplate={`Showing <span>${first}</span> to {last} of {totalRecords} entries`}
                 />
             </div>
 
