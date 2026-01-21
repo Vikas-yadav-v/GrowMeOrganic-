@@ -1,9 +1,32 @@
-/* overright the existing class */
-.p-paginator {
-    display: flex;
-    align-items: space-between;
-    justify-content: space-between;
-    flex-wrap: wrap;
+ 
+/* Disabled */
+.p-paginator-prev.p-disabled,
+.p-paginator-next.p-disabled {
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
+.p-datatable thead th {
+    text-transform: uppercase;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Showing text */
+.p-paginator-current {
+    color: #6b7280;
+}
+
+/* Page buttons */
+.p-paginator-page {
+    min-width: 2.4rem;
+    height: 2.4rem;
+}
+
+
+/* Hover */
+.p-paginator-page:hover {
+    background: #f3f4f6;
 }
 
 .p-selection-column>.p-column-header-content {
@@ -38,24 +61,10 @@
     z-index: 1000;
 }
 
-/* Small arrow (optional, like tooltip) */
-/* .select-popover::before {
-    content: "";
-    position: absolute;
-    top: -6px;
-    left: 10px;
-    width: 10px;
-    height: 10px;
-    background: #ffffff;
-    border-left: 1px solid #e5e7eb;
-    border-top: 1px solid #e5e7eb;
-    transform: rotate(45deg);
-} */
-
 .popover-title {
     font-size: 14px;
     font-weight: 600;
-    color: #1f2937;
+    color: #808892;
     margin-bottom: 4px;
 }
 
@@ -81,7 +90,7 @@
 }
 
 .popover-input:focus {
-    border-color: #2563eb;
+    border-color: #35528f;
 }
 
 .popover-btn {
@@ -111,4 +120,98 @@
 
 .popover-input-row>input {
     width: 70%;
+}
+
+/* Showing text */
+.p-paginator-current {
+    color: #6b7280;
+}
+
+.p-paginator-page.p-highlight {
+    background: #4f46e5 !important;
+    border-color: #4f46e5 !important;
+    color: white !important;
+}
+
+
+.dashboard-main-section {
+    background-color: #f7f5f5;
+    padding: 10px;
+}
+.artwork-table-shadow .p-datatable-wrapper {
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.12);
+    border-radius: 10px;
+    overflow: hidden;
+}
+.artwork-table-shadow .p-datatable-tbody > tr:hover {
+    background-color: #f9fafb;
+}
+.table-wraper {
+     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.12);
+     margin-top: 30px;
+}
+.table-wraper + .p-datatable {
+    border-radius: 10px !important;
+}
+.custom-page-btn {
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    padding: 11px 9px !important;
+    margin: 0 3px;
+    background: #fff;
+}
+
+.custom-page-btn:disabled {
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
+/* Paginator layout */
+.custom-paginator {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Left side text */
+.custom-paginator .p-paginator-current {
+    margin-right: auto;
+    font-size: 14px;
+    color: #4b5563;
+}
+
+/* Page number buttons */
+.custom-paginator .p-paginator-page {
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    padding: 5px 9px;
+    margin: 0 3px;
+    background: #fff;
+}
+
+/* Active page */
+.custom-paginator .p-paginator-page.p-highlight {
+    background: #2563eb;
+    color: #fff;
+    border-color: #2563eb;
+}
+
+.custom-page-btn:disabled {
+    color: #9ca3af;
+    border-color: #e5e7eb;
+    cursor: not-allowed;
+}
+
+.custom-page-btn:not(:disabled):hover,
+.custom-paginator .p-paginator-page:not(.p-highlight):hover {
+    background: #f9fafb;
+}
+
+.custom-paginator {
+    display: flex;
+    align-items: center;
+}
+
+.custom-paginator > span:first-of-type {
+    margin-right: auto;
 }

@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Paginator } from "primereact/paginator";
 import DropdownImage from "../assets/down-arrow.png";
 import Popbox from "./Popbox";
-/* ================= TYPES ================= */
 
 interface IResponseDataModel {
     id: number;
@@ -23,34 +22,29 @@ interface IApiResponse {
     };
 }
 
-/* ================= COMPONENT ================= */
+const API_URL = "https://api.artic.edu/api/v1/artworks?page";
 
 export default function ArtworksTable() {
     const [artworks, setArtworks] = useState<IResponseDataModel[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
-    // Pagination
     const [first, setFirst] = useState<number>(0);
     const [rows, setRows] = useState<number>(10);
     const [totalRecords, setTotalRecords] = useState<number>(0);
 
-    // Selection
+    const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [selectedRows, setSelectedRows] = useState<IResponseDataModel[]>([]);
 
-    // Custom selection popup
     const [showSelectDialog, setShowSelectDialog] = useState<boolean>(false);
     const [tempSelectCount, setTempSelectCount] = useState<string>("");
 
-    /* ================= API ================= */
+    const popboxRef = useRef<HTMLDivElement | null>(null);
 
     const fetchArtworks = async (page: number, limit: number): Promise<void> => {
         setLoading(true);
         try {
-            const res = await fetch(
-                `https://api.artic.edu/api/v1/artworks?page=${page}&limit=${limit}`
-            );
+            const res = await fetch(`${API_URL}=${page}&limit=${limit}`);
             const data: IApiResponse = await res.json();
-
             setArtworks(data.data);
             setTotalRecords(data.pagination.total);
         } catch (error) {
@@ -64,32 +58,76 @@ export default function ArtworksTable() {
         fetchArtworks(1, rows);
     }, [rows]);
 
-    /* ================= HANDLERS ================= */
+    useEffect(() => {
+        const restoredSelection = artworks.filter(row =>
+            selectedIds.has(row.id)
+        );
+        setSelectedRows(restoredSelection);
+    }, [artworks, selectedIds]);
 
-    const onPageChange = (e: { first: number, page: number, rows: number}): void => {
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                showSelectDialog &&
+                popboxRef.current &&
+                !popboxRef.current.contains(event.target as Node)
+            ) {
+                setShowSelectDialog(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
+    }, [showSelectDialog]);
+
+    const onPageChange = (e: {
+        first: number;
+        page: number;
+        rows: number;
+    }): void => {
         const page = e.page + 1;
         setFirst(e.first);
         setRows(e.rows);
-        setSelectedRows([]);
         fetchArtworks(page, e.rows);
     };
 
-
-    const onSelectionChange = (e: {
-        value: IResponseDataModel[];
-    }) => {
+    const onSelectionChange = (e: { value: IResponseDataModel[] }) => {
         setSelectedRows(e.value);
-    };
 
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            artworks.forEach(row => next.delete(row.id));
+            e.value.forEach(row => next.add(row.id));
+            return next;
+        });
+    };
 
     const applyCustomSelection = (): void => {
         const num = Number(tempSelectCount);
-
         if (!num || num <= 0) {
             setSelectedRows([]);
-        } else {
-            setSelectedRows(artworks.slice(0, Math.min(num, artworks.length)));
+            setSelectedIds(prev => {
+                const next = new Set(prev);
+                artworks.forEach(row => next.delete(row.id));
+                return next;
+            });
+
+            setShowSelectDialog(false);
+            setTempSelectCount("");
+            return;
         }
+
+        const count = Math.min(num, artworks.length);
+        const rowsToSelect = artworks.slice(0, count);
+        setSelectedRows(rowsToSelect);
+
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            artworks.forEach(row => next.delete(row.id));
+            rowsToSelect.forEach(row => next.add(row.id));
+            return next;
+        });
 
         setShowSelectDialog(false);
         setTempSelectCount("");
@@ -99,20 +137,57 @@ export default function ArtworksTable() {
         e: React.MouseEvent<HTMLDivElement | HTMLImageElement>
     ): void => {
         e.stopPropagation();
-        setShowSelectDialog((prev) => !prev);
+        setShowSelectDialog(prev => !prev);
     };
 
-    /* ================= RENDER ================= */
+    const renderCell = (value?: string | null) => {
+        if (value === null || value === undefined || value === "") {
+            return <span className="text-gray-400">N/A</span>;
+        }
+        return value;
+    };
+
+    const paginatorTemplate = {
+        layout: "CurrentPageReport PrevPageLink PageLinks NextPageLink",
+        CurrentPageReport: (options: any) => {
+            return (
+                <span>
+                    Showing{" "}
+                    <b>{options.first}</b> to{" "}
+                    <b>{options.last}</b> of{" "}
+                    <b>{options.totalRecords}</b> entries
+                </span>
+            );
+        },
+        PrevPageLink: (options: any) => (
+            <button
+                type="button"
+                onClick={options.onClick}
+                disabled={options.disabled}
+                className="custom-page-btn"
+            >
+                Previous
+            </button>
+        ),
+        NextPageLink: (options: any) => (
+            <button
+                type="button"
+                onClick={options.onClick}
+                disabled={options.disabled}
+                className="custom-page-btn"
+            >
+                Next
+            </button>
+        )
+    };
+
 
     return (
-        <div className="m-2 bg-black">
-            <h3 className="mb-3 text-base font-medium">Artworks</h3>
-
+        <div className="m-2 dashboard-main-section">
             <div className="w-full px-3 py-2 text-sm bg-gray-200">
-                Selected: {selectedRows.length} rows
+                Selected: {selectedIds.size} rows
             </div>
-
-            <div style={{ paddingTop: 30 }}>
+            <div className="table-wraper">
                 <DataTable
                     value={artworks}
                     loading={loading}
@@ -121,12 +196,9 @@ export default function ArtworksTable() {
                     onSelectionChange={onSelectionChange}
                     lazy
                     scrollable
-                    scrollHeight="420px"
-                    resizableColumns
-                    columnResizeMode="expand"
-                    showGridlines
+                    stripedRows
+                    resizableColumns={false}
                 >
-                    {/* MULTI SELECT HEADER */}
                     <Column
                         selectionMode="multiple"
                         headerStyle={{ width: "3.5rem" }}
@@ -142,14 +214,15 @@ export default function ArtworksTable() {
                                 />
                             </div>
                         }
+
                     />
 
-                    <Column field="title" header="Title" />
-                    <Column field="place_of_origin" header="Place of Origin" />
-                    <Column field="artist_display" header="Artist Display" />
-                    <Column field="inscriptions" header="Inscriptions" />
-                    <Column field="date_start" header="Date Start" />
-                    <Column field="date_end" header="Date End" />
+                    <Column field="title" header="Title" body={(row) => renderCell(row.title)} />
+                    <Column field="place_of_origin" header="Place of Origin" body={(row) => renderCell(row.place_of_origin)} />
+                    <Column field="artist_display" header="Artist Display" body={(row) => renderCell(row.artist_display)} />
+                    <Column field="inscriptions" header="Inscriptions" body={(row) => renderCell(row.inscriptions)} />
+                    <Column field="date_start" header="Date Start" body={(row) => renderCell(row.date_start)} />
+                    <Column field="date_end" header="Date End" body={(row) => renderCell(row.date_end)} />
                 </DataTable>
 
                 <Paginator
@@ -157,17 +230,23 @@ export default function ArtworksTable() {
                     rows={rows}
                     totalRecords={totalRecords}
                     onPageChange={onPageChange}
+                    pageLinkSize={5}
+                    template={paginatorTemplate}
+                    className="custom-paginator"
+                // currentPageReportTemplate={`Showing {first} to {last} of {totalRecords} entries`}
+                // currentPageReportTemplate={`Showing <span>${first}</span> to {last} of {totalRecords} entries`}
                 />
+            </div>
 
-                {showSelectDialog && (
+            {showSelectDialog && (
+                <div ref={popboxRef}>
                     <Popbox
                         tempSelectCount={tempSelectCount}
                         setTempSelectCount={setTempSelectCount}
                         applyCustomSelection={applyCustomSelection}
-                        onPopToggle={() => setShowSelectDialog(false)}
                     />
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -3,23 +3,18 @@ import React from "react";
 interface IPopbox {
   tempSelectCount: string;
   setTempSelectCount: (value: string) => void;
-  onPopToggle: () => void;
   applyCustomSelection: () => void;
 }
 
 const Popbox: React.FC<IPopbox> = ({
   tempSelectCount,
   setTempSelectCount,
-  onPopToggle,
   applyCustomSelection,
 }) => {
   return (
     <div className="select-popover">
       <div className="select-pop-title">
         <div className="popover-title">Select Multiple Rows</div>
-        <div className="close-icon" onClick={onPopToggle}>
-          ×
-        </div>
       </div>
 
       <div className="popover-subtitle">
