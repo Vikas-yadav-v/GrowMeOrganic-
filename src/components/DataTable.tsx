@@ -24,6 +24,11 @@ interface IApiResponse {
 
 const API_URL = "https://api.artic.edu/api/v1/artworks?page";
 
+const apiCall = async (page: number, limit: number) => {
+   const res = await fetch(`${API_URL}=${page}&limit=${limit}`);
+   return await res.json()
+}
+
 export default function ArtworksTable() {
     const [artworks, setArtworks] = useState<IResponseDataModel[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
@@ -32,23 +37,31 @@ export default function ArtworksTable() {
     const [rows, setRows] = useState<number>(10);
     const [totalRecords, setTotalRecords] = useState<number>(0);
 
-    const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+    const [pageSelections, setPageSelections] = useState<{
+        [page: number]: IResponseDataModel[];
+    }>({});
+
     const [selectedRows, setSelectedRows] = useState<IResponseDataModel[]>([]);
+    const [currentPage, setCurrentPage] = useState<number>(1);
 
     const [showSelectDialog, setShowSelectDialog] = useState<boolean>(false);
     const [tempSelectCount, setTempSelectCount] = useState<string>("");
 
     const popboxRef = useRef<HTMLDivElement | null>(null);
 
-    const fetchArtworks = async (page: number, limit: number): Promise<void> => {
+    const fetchArtworks = async (
+        page: number,
+        limit: number
+    ): Promise<IResponseDataModel[]> => {
         setLoading(true);
         try {
-            const res = await fetch(`${API_URL}=${page}&limit=${limit}`);
-            const data: IApiResponse = await res.json();
+            const data: IApiResponse= await apiCall(page, limit)
             setArtworks(data.data);
             setTotalRecords(data.pagination.total);
+            return data.data;
         } catch (error) {
             console.error("API Error:", error);
+            return [];
         } finally {
             setLoading(false);
         }
@@ -59,11 +72,8 @@ export default function ArtworksTable() {
     }, [rows]);
 
     useEffect(() => {
-        const restoredSelection = artworks.filter(row =>
-            selectedIds.has(row.id)
-        );
-        setSelectedRows(restoredSelection);
-    }, [artworks, selectedIds]);
+        setSelectedRows(pageSelections[currentPage] || []);
+    }, [currentPage, pageSelections]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -81,73 +91,83 @@ export default function ArtworksTable() {
             document.removeEventListener("mousedown", handleClickOutside);
     }, [showSelectDialog]);
 
-    const onPageChange = (e: {
+    const onPageChange = async (e: {
         first: number;
         page: number;
         rows: number;
-    }): void => {
+    }) => {
         const page = e.page + 1;
         setFirst(e.first);
         setRows(e.rows);
-        fetchArtworks(page, e.rows);
+        setCurrentPage(page);
+        await fetchArtworks(page, e.rows);
     };
 
     const onSelectionChange = (e: { value: IResponseDataModel[] }) => {
         setSelectedRows(e.value);
-
-        setSelectedIds(prev => {
-            const next = new Set(prev);
-            artworks.forEach(row => next.delete(row.id));
-            e.value.forEach(row => next.add(row.id));
-            return next;
-        });
+        setPageSelections(prev => ({
+            ...prev,
+            [currentPage]: e.value
+        }));
     };
 
-    const applyCustomSelection = (): void => {
+    const applyCustomSelection = async (): Promise<void> => {
         const num = Number(tempSelectCount);
         if (!num || num <= 0) {
+            setPageSelections({});
             setSelectedRows([]);
-            setSelectedIds(prev => {
-                const next = new Set(prev);
-                artworks.forEach(row => next.delete(row.id));
-                return next;
-            });
-
             setShowSelectDialog(false);
             setTempSelectCount("");
             return;
         }
+        setLoading(true);
+        try {
+            const data: IApiResponse = await apiCall(1, num)
+            const selectedData = data.data;
 
-        const count = Math.min(num, artworks.length);
-        const rowsToSelect = artworks.slice(0, count);
-        setSelectedRows(rowsToSelect);
+            const newPageSelections: {
+                [page: number]: IResponseDataModel[];
+            } = {};
 
-        setSelectedIds(prev => {
-            const next = new Set(prev);
-            artworks.forEach(row => next.delete(row.id));
-            rowsToSelect.forEach(row => next.add(row.id));
-            return next;
-        });
+            selectedData.forEach((item, index) => {
+                const pageNumber = Math.floor(index / rows) + 1;
+                if (!newPageSelections[pageNumber]) {
+                    newPageSelections[pageNumber] = [];
+                }
+                newPageSelections[pageNumber].push(item);
+            });
 
-        setShowSelectDialog(false);
-        setTempSelectCount("");
+            setPageSelections(newPageSelections);
+            setSelectedRows(newPageSelections[currentPage] || []);
+
+        } catch (error) {
+            console.error("Custom selection error:", error);
+        } finally {
+            setLoading(false);
+            setShowSelectDialog(false);
+            setTempSelectCount("");
+        }
     };
 
     const onPopToggle = (
         e: React.MouseEvent<HTMLDivElement | HTMLImageElement>
-    ): void => {
+    ) => {
         e.stopPropagation();
         setShowSelectDialog(prev => !prev);
     };
 
     const renderCell = (value?: string | null) => {
-        if (value === null || value === undefined || value === "") {
+        if (!value) {
             return <span className="text-gray-400">N/A</span>;
         }
         return value;
     };
 
-    const paginatorTemplate = {
+    const totalSelected = Object.values(pageSelections)
+        .flat()
+        .length;
+
+     const paginatorTemplate = {
         layout: "CurrentPageReport PrevPageLink PageLinks NextPageLink",
         CurrentPageReport: (options: any) => {
             return (
@@ -181,12 +201,12 @@ export default function ArtworksTable() {
         )
     };
 
-
     return (
         <div className="m-2 dashboard-main-section">
             <div className="w-full px-3 py-2 text-sm bg-gray-200">
-                Selected: {selectedIds.size} rows
+                Selected: {totalSelected} rows
             </div>
+
             <div className="table-wraper">
                 <DataTable
                     value={artworks}
@@ -198,7 +218,6 @@ export default function ArtworksTable() {
                     lazy
                     scrollable
                     stripedRows
-                    resizableColumns={false}
                 >
                     <Column
                         selectionMode="multiple"
@@ -215,7 +234,6 @@ export default function ArtworksTable() {
                                 />
                             </div>
                         }
-
                     />
 
                     <Column field="title" header="Title" body={(row) => renderCell(row.title)} />
@@ -232,8 +250,8 @@ export default function ArtworksTable() {
                     totalRecords={totalRecords}
                     onPageChange={onPageChange}
                     pageLinkSize={5}
-                    template={paginatorTemplate}
                     className="custom-paginator"
+                    template={paginatorTemplate}
                 />
             </div>
 

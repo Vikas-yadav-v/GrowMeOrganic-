@@ -1,5 +1,4 @@
- 
-/* Disabled */
+
 .p-paginator-prev.p-disabled,
 .p-paginator-next.p-disabled {
     color: #9ca3af;
@@ -12,19 +11,15 @@
     font-weight: 600;
 }
 
-/* Showing text */
 .p-paginator-current {
     color: #6b7280;
 }
 
-/* Page buttons */
 .p-paginator-page {
     min-width: 2.4rem;
     height: 2.4rem;
 }
 
-
-/* Hover */
 .p-paginator-page:hover {
     background: #f3f4f6;
 }
@@ -122,7 +117,6 @@
     width: 70%;
 }
 
-/* Showing text */
 .p-paginator-current {
     color: #6b7280;
 }
@@ -166,21 +160,18 @@
     cursor: not-allowed;
 }
 
-/* Paginator layout */
 .custom-paginator {
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
-/* Left side text */
 .custom-paginator .p-paginator-current {
     margin-right: auto;
     font-size: 14px;
     color: #4b5563;
 }
 
-/* Page number buttons */
 .custom-paginator .p-paginator-page {
     border: 1px solid #d1d5db;
     border-radius: 5px;
@@ -189,11 +180,10 @@
     background: #fff;
 }
 
-/* Active page */
 .custom-paginator .p-paginator-page.p-highlight {
-    background: #2563eb;
+    background: #6a7488;
     color: #fff;
-    border-color: #2563eb;
+    border-color: #6d84b4;
 }
 
 .custom-page-btn:disabled {
